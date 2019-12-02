@@ -14,7 +14,10 @@ arguments:
     ["-o", { valueFrom: $(runtime.outdir)/$(inputs.output_vcf_basename).vcf.gz }]
 inputs:
     reference:
-        type: string
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
         inputBinding:
             prefix: "-R"
             position: 1
@@ -37,6 +40,12 @@ inputs:
     output_vcf_basename:
         type: string?
         default: select_variants
+    samples_to_include:
+        type: string[]?
+        inputBinding:
+            prefix: "--sample_name"
+            position: 5
+        doc: 'include genotypes from this sample'
 outputs:
     filtered_vcf:
         type: File
