@@ -10,7 +10,10 @@ inputs:
         type: File
         secondaryFiles: [.bai,^.bai]
     reference:
-        type: string
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
     vcf:
         type: File
         secondaryFiles: [.tbi]
@@ -30,11 +33,17 @@ outputs:
         outputSource: hard_filter/filtered_vcf
         secondaryFiles: [.tbi]
 steps:
+    sanitize_vcf:
+        run: ../tools/vcf_sanitize.cwl
+        in:
+            vcf: vcf
+        out:
+            [sanitized_vcf]
     normalize_variants:
         run: ../tools/normalize_variants.cwl
         in:
             reference: reference
-            vcf: vcf
+            vcf: sanitize_vcf/sanitized_vcf
         out:
             [normalized_vcf]
     decompose_variants:
