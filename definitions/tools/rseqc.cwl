@@ -47,9 +47,85 @@ inputs:
 stdout: "rseqc.log"
 
 outputs:
-    genebody_log:
+    genebody_r:
         type: File
         outputBinding:
             glob: "*geneBodyCoverage.r"
+    genebody_text:
+        type: File
+        outputBinding:
+            glob: "*geneBodyCoverage.txt"
+    genebody_pdf:
+        type: File
+        outputBinding:
+            glob: "*geneBodyCoverage.curves.pdf"
+    frag_size:
+        type: File
+        outputBinding:
+            glob: "*frag_size"
+    inner_distance_text:
+        type: File
+        outputBinding:
+            glob: "*inner_distance.txt"
+    inner_distance_freq:
+        type: File
+        outputBinding:
+            glob: "*inner_distance_freq.txt"
+    inner_distance_pdf:
+        type: File
+        outputBinding:
+            glob: "*inner_distance_plot.pdf"
+    inner_distance_r:
+        type: File
+        outputBinding:
+            glob: "*inner_distance_plot.r"
+    junction_interact:
+        type: File
+        outputBinding:
+            glob: "*junction.Interact.bed"
+    junction_bed:
+        type: File
+        outputBinding:
+            glob: "*junction.bed"
+    junction_text:
+        type: File
+        outputBinding:
+            glob: "*junction.txt"
+    junction_xls:
+        type: File
+        outputBinding:
+            glob: "*junction.xls"
+    junction_r:
+        type: File
+        outputBinding:
+            glob: "*junction_plot.r"
+    gc_xls:
+        type: File
+        outputBinding:
+            glob: "*GC.xls"
+    gc_pdf:
+        type: File
+        outputBinding:
+            glob: "*GC_plot.pdf"
+    gc_r:
+        type: File
+        outputBinding:
+            glob: "*GC_plot.r"
+    read_distribution:
+        type: File
+        outputBinding:
+            glob: "*read_distribution.txt"
+    infer_strand:
+        type: File
+        outputBinding:
+            glob: "*strand.txt"
+    splice_events:
+        type: File
+        outputBinding:
+            glob: "*splice_events.pdf"
+    splice_junction:
+        type: File
+        outputBinding:
+            glob: "*splice_junction.pdf"
     log:
         type: stdout
