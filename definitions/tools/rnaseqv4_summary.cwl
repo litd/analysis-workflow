@@ -24,7 +24,7 @@ requirements:
             str2="$3"
             final="$4"
             dup_metrics="$5"
-            genebody_log="$6"
+            genebody_r="$6"
 
             gene_name_fc="$7"
             gene_name_fc_summary="$8"
@@ -55,7 +55,7 @@ requirements:
             after_dup=`grep PERCENT_DUPLICATION "$dup_metrics" -A 2 | cut -f9 | sed -n '2p'`
 
             # gene body coverage
-            auc=`head -1 "$genebody_log" | awk -F "[(]" '{print $2}' | sed 's/)//' | awk -F "[,]" '{for(i=1;i<=NF;i++) t+=$i; print t}'`
+            auc=`head -1 "$genebody_r" | awk -F "[(]" '{print $2}' | sed 's/)//' | awk -F "[,]" '{for(i=1;i<=NF;i++) t+=$i; print t}'`
 
             # featurecounts
             echo -e "gene_name\tlength\tfragment_count" > gene_name_count.txt
@@ -129,7 +129,7 @@ inputs:
         type: File
         inputBinding:
             position: 5
-    genebody_log:
+    genebody_r:
         type: File
         inputBinding:
             position: 6
@@ -175,6 +175,10 @@ outputs:
         type: File
         outputBinding:
             glob: "gene_type_count.txt"
+    rna_type:
+        type: File
+        outputBinding:
+            glob: "rna_type.txt"
     qc_summary:
         type: File
         outputBinding:
