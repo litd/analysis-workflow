@@ -41,20 +41,20 @@ outputs:
             items: File
         outputBinding:
             glob: "*_fastqc.html"
-    summary:
-        type:
-            type: array
-            items: File
-        outputBinding:
-            glob: |
-               ${ return "*/summary.txt" }
-    fastqc_data:
-        type:
-            type: array
-            items: File
-        outputBinding:
-            glob: |
-               ${ return "*/fastqc_data.txt" }
+#    summary:
+#        type:
+#            type: array
+#            items: File
+#        outputBinding:
+#            glob: |
+#               ${ return "*/summary.txt" }
+#    fastqc_data:
+#        type:
+#            type: array
+#            items: File
+#        outputBinding:
+#            glob: |
+#               ${ return "*/fastqc_data.txt" }
     log:
         type: stdout
 
