@@ -27,6 +27,12 @@ inputs:
         type: string
 
 outputs:
+    cutadapt_log:
+        type: File
+        outputSource: cutadapt/cutadapt_log
+    cutadapt_summary:
+        type: File
+        outputSource: rnaseq_summary/cutadapt_summary
     zippedfile:
         type:
             type: array
@@ -37,25 +43,39 @@ outputs:
             type: array
             items: File
         outputSource: fastqc/htmlfile
-    summary:
-        type:
-            type: array
-            items: File
-        outputSource: fastqc/summary
-    fastqc_data:
-        type:
-            type: array
-            items: File
-        outputSource: fastqc/fastqc_data
+    aligned_bam:
+        type: File
+        outputSource: star/aligned_bam
     transcriptome_bam:
         type: File
         outputSource: star/transcriptome_bam
+    star_log:
+        type: File
+        outputSource: star/final
+    mark_dup_metrices_file:
+        type: File
+        outputSource: mark_dup/metrics_file
     final_bam:
         type: File
         outputSource: index_bam/indexed_bam
     preseq_result:
         type: File
         outputSource: preseq/preseq_result
+    fc_log:
+        type: File
+        outputSource: fc/log
+    gene_name_fc:
+        type: File
+        outputSource: fc/gene_name_fc
+    gene_name_fc_summary:
+        type: File
+        outputSource: fc/gene_name_fc_summary
+    gene_type_fc:
+        type: File
+        outputSource: fc/gene_type_fc
+    gene_type_fc_summary:
+        type: File
+        outputSource: fc/gene_type_fc_summary
     genes_file:
         type: File
         outputSource: rsem/genes_file
@@ -65,12 +85,87 @@ outputs:
     transcript_file:
         type: File
         outputSource: rsem/transcript_file
-    cutadapt_summary:
+    rsem_stat:
+        type: Directory
+        outputSource: rsem/stat
+    splice:
         type: File
-        outputSource: rnaseq_summary/cutadapt_summary
+        outputSource: rnaseq_summary/splice
     unique_stranded:
         type: File
         outputSource: rnaseq_summary/unique_stranded
+    gene_name_count:
+        type: File
+        outputSource: rnaseq_summary/gene_name_count
+    gene_type_count:
+        type: File
+        outputSource: rnaseq_summary/gene_type_count
+    rna_type:
+        type: File
+        outputSource: rnaseq_summary/rna_type
+    qc_summary:
+        type: File
+        outputSource: rnaseq_summary/qc_summary
+    genebody_r:
+        type: File
+        outputSource: rseqc/genebody_r
+    genebody_text:
+        type: File
+        outputSource: rseqc/genebody_text
+    genebody_pdf:
+        type: File
+        outputSource: rseqc/genebody_pdf
+    frag_size:
+        type: File
+        outputSource: rseqc/frag_size
+    inner_distance_text:
+        type: File
+        outputSource: rseqc/inner_distance_text
+    inner_distance_freq:
+        type: File
+        outputSource: rseqc/inner_distance_freq
+    inner_distance_pdf:
+        type: File
+        outputSource: rseqc/inner_distance_pdf
+    inner_distance_r:
+        type: File
+        outputSource: rseqc/inner_distance_r
+    junction_interact:
+        type: File
+        outputSource: rseqc/junction_interact
+    junction_bed:
+        type: File
+        outputSource: rseqc/junction_bed
+    junction_text:
+        type: File
+        outputSource: rseqc/junction_text
+    junction_xls:
+        type: File
+        outputSource: rseqc/junction_xls
+    junction_r:
+        type: File
+        outputSource: rseqc/junction_r
+    gc_xls:
+        type: File
+        outputSource: rseqc/gc_xls
+    gc_pdf:
+        type: File
+        outputSource: rseqc/gc_pdf
+    gc_r:
+        type: File
+        outputSource: rseqc/gc_r
+    read_distribution:
+        type: File
+        outputSource: rseqc/read_distribution
+    infer_strand:
+        type: File
+        outputSource: rseqc/infer_strand
+    splice_events:
+        type: File
+        outputSource: rseqc/splice_events
+    splice_junction:
+        type: File
+        outputSource: rseqc/splice_junction
 
 steps:
     cutadapt:
@@ -84,7 +179,7 @@ steps:
         in: 
             fastq1: cutadapt/trimmed_fastq1
             fastq2: cutadapt/trimmed_fastq2
-        out: [zippedfile,htmlfile,summary,fastqc_data,log]
+        out: [zippedfile,htmlfile,log]
     star:
         run: ../tools/star.cwl
         in: 
@@ -114,7 +209,7 @@ steps:
         in: 
             bam: index_bam/indexed_bam
             refgene: refgene
-        out: [genebody_log,log]
+        out: [genebody_r,genebody_text,genebody_pdf,frag_size,inner_distance_text,inner_distance_freq,inner_distance_pdf,inner_distance_r,junction_interact,junction_bed,junction_text,junction_xls,junction_r,gc_xls,gc_pdf,gc_r,read_distribution,infer_strand,splice_events,splice_junction,log]
     sub_bam:
         run: ../tools/sub_bam.cwl
         in:
@@ -143,11 +238,11 @@ steps:
             str2: star/str2
             final: star/final
             dup_metrics: mark_dup/metrics_file
-            genebody_log: rseqc/genebody_log
+            genebody_r: rseqc/genebody_r
             gene_name_fc: fc/gene_name_fc
             gene_name_fc_summary: fc/gene_name_fc_summary
             gene_type_fc: fc/gene_type_fc
             gene_type_fc_summary: fc/gene_type_fc_summary
-        out: [cutadapt_summary,unique_stranded,splice,gene_name_count,gene_type_count,qc_summary,summary_log]
+        out: [cutadapt_summary,unique_stranded,splice,gene_name_count,gene_type_count,qc_summary,summary_log,rna_type]
 
 
