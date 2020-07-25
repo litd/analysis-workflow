@@ -9,7 +9,7 @@ requirements:
     - class: DockerRequirement
       dockerPull: litd/dana@sha256:e0228fbe059abee53ae41ed96e4d1a3b592e71249f14d407820a9051982b1cab
     - class: ResourceRequirement
-      ramMin: 2000
+      ramMin: 16000
       coresMin: 1
     - class: StepInputExpressionRequirement
     - class: InitialWorkDirRequirement
