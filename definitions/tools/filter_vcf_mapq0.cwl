@@ -9,7 +9,7 @@ requirements:
     - class: ResourceRequirement
       ramMin: 8000
       tmpdirMin: 10000
-arguments: 
+arguments:
     ["/bin/bash", "/usr/bin/mapq0_vcf_filter.sh",
     {valueFrom: "$(runtime.outdir)/mapq_filtered.vcf.gz"}]
 inputs:
@@ -22,16 +22,19 @@ inputs:
         inputBinding:
             position: 2
         secondaryFiles: [.bai]
-    reference: 
-         type: string
-         inputBinding:
-             position: 3
-    threshold: 
-         type: float
-         inputBinding:
-             position: 4
+    reference:
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
+        inputBinding:
+            position: 3
+    threshold:
+        type: float
+        inputBinding:
+            position: 4
 outputs:
-     mapq0_filtered_vcf:
-         type: File
-         outputBinding:
-             glob: "mapq_filtered.vcf.gz"
+    mapq0_filtered_vcf:
+        type: File
+        outputBinding:
+            glob: "mapq_filtered.vcf.gz"
