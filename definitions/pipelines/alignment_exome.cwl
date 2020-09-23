@@ -36,7 +36,7 @@ inputs:
     bait_intervals:
         type: File
     final_name:
-        type: string
+        type: string?
     target_intervals:
         type: File
     per_base_intervals:
