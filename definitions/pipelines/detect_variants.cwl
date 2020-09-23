@@ -5,26 +5,27 @@ class: Workflow
 label: "Detect Variants workflow"
 requirements:
     - class: SubworkflowFeatureRequirement
+    - class: SchemaDefRequirement
+      types:
+          - $import: ../types/vep_custom_annotation.yml
+    - class: StepInputExpressionRequirement
+    - class: InlineJavascriptRequirement
 inputs:
     reference:
-        type: string
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
     tumor_bam:
         type: File
         secondaryFiles: [.bai,^.bai]
     normal_bam:
         type: File
         secondaryFiles: [.bai,^.bai]
-    interval_list:
+    roi_intervals:
         type: File
-    dbsnp_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
-    cosmic_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
-    panel_of_normals_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
+        label: "roi_intervals: regions of interest in which variants will be called"
+        doc: "roi_intervals is a list of regions (in interval_list format) within which to call somatic variants"
     strelka_exome_mode:
         type: boolean
     strelka_cpu_reserved:
@@ -35,13 +36,8 @@ inputs:
     readcount_minimum_mapping_quality:
         type: int?
     mutect_scatter_count:
-        type: int?
-    mutect_artifact_detection_mode:
-        type: boolean?
-    mutect_max_alt_allele_in_normal_fraction:
-        type: float?
-    mutect_max_alt_alleles_in_normal_count:
-        type: int?
+        type: int
+        default: 50
     varscan_strand_filter:
         type: int?
         default: 0
@@ -62,11 +58,15 @@ inputs:
     docm_vcf:
         type: File
         secondaryFiles: [.tbi]
+        doc: "Common mutations in cancer that will be genotyped and passed through into the merged VCF if they have even low-level evidence of a mutation (by default, marked with filter DOCM_ONLY)"
     filter_docm_variants:
-        type: boolean?
+        type: boolean
         default: true
+        doc: "Determines whether variants found only via genotyping of DOCM sites will be filtered (as DOCM_ONLY) or passed through as variant calls"
     vep_cache_dir:
-        type: string
+        type:
+            - string
+            - Directory
     vep_ensembl_assembly:
         type: string
         doc: "genome assembly to use in vep. Examples: GRCh38 or GRCm38"
@@ -79,45 +79,59 @@ inputs:
     synonyms_file:
         type: File?
     annotate_coding_only:
-        type: boolean?
+        type: boolean
     vep_pick:
         type:
             - "null"
             - type: enum
               symbols: ["pick", "flag_pick", "pick_allele", "per_gene", "pick_allele_gene", "flag_pick_allele", "flag_pick_allele_gene"]
     vep_plugins:
-        type: string[]?
+        type: string[]
         default: [Downstream, Wildtype]
     filter_gnomADe_maximum_population_allele_frequency:
-        type: float?
+        type: float
         default: 0.001
     filter_mapq0_threshold:
-        type: float?
+        type: float
         default: 0.15
+    filter_somatic_llr_threshold:
+        type: float
+        default: 5
+        doc: "Sets the stringency (log-likelihood ratio) used to filter out non-somatic variants.  Typical values are 10=high stringency, 5=normal, 3=low stringency. Low stringency may be desirable when read depths are low (as in WGS) or when tumor samples are impure."
+    filter_somatic_llr_tumor_purity:
+        type: float
+        default: 1
+        doc: "Sets the purity of the tumor used in the somatic llr filter, used to remove non-somatic variants. Probably only needs to be adjusted for low-purity (< 50%).  Range is 0 to 1"
+    filter_somatic_llr_normal_contamination_rate:
+        type: float
+        default: 0
+        doc: "Sets the fraction of tumor present in the normal sample (range 0 to 1), used in the somatic llr filter. Useful for heavily contaminated adjacent normals. Range is 0 to 1"
     filter_minimum_depth:
-        type: int?
+        type: int
         default: 1
     cle_vcf_filter:
-        type: boolean?
+        type: boolean
         default: false
-    filter_somatic_llr_threshold:
-        type: float?
-        default: 5
     variants_to_table_fields:
-        type: string[]?
+        type: string[]
         default: [CHROM,POS,ID,REF,ALT,set,AC,AF]
     variants_to_table_genotype_fields:
-        type: string[]?
+        type: string[]
         default: [GT,AD]
     vep_to_table_fields:
-        type: string[]?
+        type: string[]
         default: [HGVSc,HGVSp]
-    custom_gnomad_vcf:
+    tumor_sample_name:
+        type: string
+    normal_sample_name:
+        type: string
+    vep_custom_annotations:
+        type: ../types/vep_custom_annotation.yml#vep_custom_annotation[]
+        doc: "custom type, check types directory for input format"
+    known_variants:
         type: File?
         secondaryFiles: [.tbi]
-    custom_clinvar_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
+        doc: "Previously discovered variants to be flagged in this pipelines's output vcf"
 outputs:
     mutect_unfiltered_vcf:
         type: File
@@ -188,14 +202,9 @@ steps:
             reference: reference
             tumor_bam: tumor_bam
             normal_bam: normal_bam
-            interval_list: interval_list
-            dbsnp_vcf: dbsnp_vcf
-            cosmic_vcf: cosmic_vcf
-            max_alt_allele_in_normal_fraction: mutect_max_alt_allele_in_normal_fraction
-            max_alt_alleles_in_normal_count: mutect_max_alt_alleles_in_normal_count
+            interval_list: roi_intervals
             scatter_count: mutect_scatter_count
-            artifact_detection_mode: mutect_artifact_detection_mode
-            panel_of_normals_vcf: panel_of_normals_vcf
+            tumor_sample_name: tumor_sample_name
         out:
             [unfiltered_vcf, filtered_vcf]
     strelka:
@@ -204,9 +213,11 @@ steps:
             reference: reference
             tumor_bam: tumor_bam
             normal_bam: normal_bam
-            interval_list: interval_list
+            interval_list: roi_intervals
             exome_mode: strelka_exome_mode
             cpu_reserved: strelka_cpu_reserved
+            normal_sample_name: normal_sample_name
+            tumor_sample_name: tumor_sample_name
         out:
             [unfiltered_vcf, filtered_vcf]
     varscan:
@@ -215,12 +226,14 @@ steps:
             reference: reference
             tumor_bam: tumor_bam
             normal_bam: normal_bam
-            interval_list: interval_list
+            interval_list: roi_intervals
             strand_filter: varscan_strand_filter
             min_coverage: varscan_min_coverage
             min_var_freq: varscan_min_var_freq
             p_value: varscan_p_value
             max_normal_freq: varscan_max_normal_freq
+            normal_sample_name: normal_sample_name
+            tumor_sample_name: tumor_sample_name
         out:
             [unfiltered_vcf, filtered_vcf]
     pindel:
@@ -229,8 +242,10 @@ steps:
             reference: reference
             tumor_bam: tumor_bam
             normal_bam: normal_bam
-            interval_list: interval_list
+            interval_list: roi_intervals
             insert_size: pindel_insert_size
+            tumor_sample_name: tumor_sample_name
+            normal_sample_name: normal_sample_name
         out:
             [unfiltered_vcf, filtered_vcf]
     docm:
@@ -240,7 +255,7 @@ steps:
             tumor_bam: tumor_bam
             normal_bam: normal_bam
             docm_vcf: docm_vcf
-            interval_list: interval_list
+            interval_list: roi_intervals
             filter_docm_variants: filter_docm_variants
         out:
             [docm_variants_vcf]
@@ -285,9 +300,8 @@ steps:
             synonyms_file: synonyms_file
             coding_only: annotate_coding_only
             reference: reference
-            custom_gnomad_vcf: custom_gnomad_vcf
             pick: vep_pick
-            custom_clinvar_vcf: custom_clinvar_vcf
+            custom_annotations: vep_custom_annotations
             plugins: vep_plugins
         out:
             [annotated_vcf, vep_summary]
@@ -295,8 +309,7 @@ steps:
         run: ../tools/bam_readcount.cwl
         in:
             vcf: annotate_variants/annotated_vcf
-            sample:
-                default: 'TUMOR'
+            sample: tumor_sample_name
             reference_fasta: reference
             bam: tumor_bam
             min_base_quality: readcount_minimum_base_quality
@@ -307,8 +320,7 @@ steps:
         run: ../tools/bam_readcount.cwl
         in:
             vcf: annotate_variants/annotated_vcf
-            sample:
-                default: 'NORMAL'
+            sample: normal_sample_name
             reference_fasta: reference
             bam: normal_bam
             min_base_quality: readcount_minimum_base_quality
@@ -323,8 +335,7 @@ steps:
             indel_bam_readcount_tsv: tumor_bam_readcount/indel_bam_readcount_tsv
             data_type:
                 default: 'DNA'
-            sample_name:
-                default: 'TUMOR'
+            sample_name: tumor_sample_name
         out:
             [annotated_bam_readcount_vcf]
     add_normal_bam_readcount_to_vcf:
@@ -335,8 +346,7 @@ steps:
             indel_bam_readcount_tsv: normal_bam_readcount/indel_bam_readcount_tsv
             data_type:
                 default: 'DNA'
-            sample_name:
-                default: 'NORMAL'
+            sample_name: normal_sample_name
         out:
             [annotated_bam_readcount_vcf]
     index:
@@ -352,12 +362,28 @@ steps:
             filter_gnomADe_maximum_population_allele_frequency: filter_gnomADe_maximum_population_allele_frequency
             filter_mapq0_threshold: filter_mapq0_threshold
             filter_somatic_llr_threshold: filter_somatic_llr_threshold
+            filter_somatic_llr_tumor_purity: filter_somatic_llr_tumor_purity
+            filter_somatic_llr_normal_contamination_rate: filter_somatic_llr_normal_contamination_rate
             filter_minimum_depth: filter_minimum_depth
-            sample_names:
-                default: 'NORMAL,TUMOR'
             tumor_bam: tumor_bam
             do_cle_vcf_filter: cle_vcf_filter
             reference: reference
+            normal_sample_name: normal_sample_name
+            tumor_sample_name: tumor_sample_name
+            gnomad_field_name:
+              source: vep_custom_annotations
+              valueFrom: |
+                ${
+                   if(self){
+                        for(var i=0; i<self.length; i++){
+                            if(self[i].annotation.gnomad_filter){
+                                return(self[i].annotation.name + '_AF');
+                            }
+                        }
+                    }
+                    return('gnomAD_AF');
+                }
+            known_variants: known_variants
         out: 
             [filtered_vcf]
     annotated_filter_bgzip:
