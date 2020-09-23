@@ -32,11 +32,11 @@ inputs:
         type: File
         secondaryFiles: [.tbi]
     bqsr_intervals:
-        type: string[]?
+        type: string[]
     bait_intervals:
         type: File
     final_name:
-        type: string?
+        type: string
     target_intervals:
         type: File
     per_base_intervals:

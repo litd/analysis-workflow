@@ -16,7 +16,7 @@ inputs:
     unaligned:
         type: ../types/sequence_data.yml#sequence_data[]
     bqsr_intervals:
-        type: string[]?
+        type: string[]
     reference:
         type:
             - string
