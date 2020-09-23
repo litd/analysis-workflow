@@ -3,15 +3,18 @@
 cwlVersion: v1.0
 class: CommandLineTool
 label: "GATK HaplotypeCaller"
-baseCommand: ["/usr/bin/java", "-Xmx8g", "-jar", "/opt/GenomeAnalysisTK.jar", "-T", "HaplotypeCaller"]
+baseCommand: ["/gatk/gatk", "--java-options", "-Xmx16g", "HaplotypeCaller"]
 requirements:
     - class: ResourceRequirement
-      ramMin: 10000
+      ramMin: 18000
     - class: DockerRequirement
-      dockerPull: "mgibio/gatk-cwl:3.5.0"
+      dockerPull: "broadinstitute/gatk:4.1.8.1"
 inputs:
     reference:
-        type: string
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
         inputBinding:
             prefix: "-R"
             position: 1
@@ -22,7 +25,9 @@ inputs:
             position: 2
         secondaryFiles: [^.bai]
     emit_reference_confidence:
-        type: string
+        type:
+            type: enum
+            symbols: ['NONE', 'BP_RESOLUTION', 'GVCF']
         inputBinding:
             prefix: "-ERC"
             position: 3
@@ -53,12 +58,30 @@ inputs:
         inputBinding:
             prefix: "-contamination"
             position: 7
+    max_alternate_alleles:
+        type: int?
+        doc: 'maximum number of alternate alleles to genotype'
+        inputBinding:
+            prefix: '--max_alternate_alleles'
+            position: 8
+    ploidy:
+        type: int?
+        doc: 'number of chromosomes per sample'
+        inputBinding:
+            prefix: '-ploidy'
+            position: 9
+    read_filter:
+        type: string?
+        doc: 'filters to apply to reads before analysis'
+        inputBinding:
+            prefix: '--read_filter'
+            position: 10
     output_file_name:
         type: string
         default: "output.g.vcf.gz"
         inputBinding:
-            prefix: "-o"
-            position: 8
+            prefix: "-O"
+            position: 11
 outputs:
     gvcf:
         type: File
