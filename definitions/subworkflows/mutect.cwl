@@ -10,10 +10,13 @@ requirements:
     - class: StepInputExpressionRequirement
 inputs:
     reference:
-        type: string
+        type:
+            - string
+            - File
+        secondaryFiles: [.fai, ^.dict]
     tumor_bam:
         type: File
-        secondaryFiles: [^.bai]
+        secondaryFiles: [^.bai, .bai]
     normal_bam:
         type: File?
         secondaryFiles: [^.bai]
@@ -21,21 +24,8 @@ inputs:
         type: File
     scatter_count:
         type: int
-    dbsnp_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
-    cosmic_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
-    artifact_detection_mode:
-        type: boolean
-    panel_of_normals_vcf:
-        type: File?
-        secondaryFiles: [.tbi]
-    max_alt_allele_in_normal_fraction:
-        type: float?
-    max_alt_alleles_in_normal_count:
-        type: int?
+    tumor_sample_name:
+        type: string
 outputs:
     unfiltered_vcf:
         type: File
@@ -60,12 +50,6 @@ steps:
             tumor_bam: tumor_bam
             normal_bam: normal_bam
             interval_list: split_interval_list/split_interval_lists
-            dbsnp_vcf: dbsnp_vcf
-            cosmic_vcf: cosmic_vcf
-            artifact_detection_mode: artifact_detection_mode
-            panel_of_normals_vcf: panel_of_normals_vcf
-            max_alt_allele_in_normal_fraction: max_alt_allele_in_normal_fraction
-            max_alt_alleles_in_normal_count: max_alt_alleles_in_normal_count
         out:
             [vcf]
     merge:
@@ -88,6 +72,7 @@ steps:
             vcf: index/indexed_vcf
             variant_caller: 
                 valueFrom: "mutect"
+            sample_name: tumor_sample_name
         out:
             [unfiltered_vcf, filtered_vcf]
 
