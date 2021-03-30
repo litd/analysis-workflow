@@ -6,7 +6,7 @@ label: "False Positive filter"
 baseCommand: ["/usr/bin/perl", "/usr/bin/fpfilter.pl"]
 requirements:
     - class: ResourceRequirement
-      ramMin: 6000
+      ramMin: 24000
       tmpdirMin: 25000
     - class: DockerRequirement
       dockerPull: "mgibio/fp_filter-cwl:1.0.1"
