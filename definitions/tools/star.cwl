@@ -4,7 +4,7 @@ cwlVersion: v1.0
 class: CommandLineTool
 label: "run STAR v2.5.4"
 
-baseCommand: ["STAR"]
+baseCommand: ["/usr/local/bin/STAR"]
 requirements:
     - class: InlineJavascriptRequirement
     - class: DockerRequirement
